@@ -1,5 +1,6 @@
 import requests
 import datetime
+import psycopg2
 
 
 class BotHandler:
@@ -8,10 +9,7 @@ class BotHandler:
         self.token = token
         self.api_url = "https://api.telegram.org/bot{}/".format(token)
 
-
-#url = "https://api.telegram.org/bot554026510:AAHQahqhMAwffu4qWQSa0JZPJjDLamDtXO4/"
-
-    def get_updates(self, offset=None,timeout=30):
+    def get_updates(self, offset=None, timeout=30):
         method = 'getUpdates'
         params = {'timeout': timeout, 'offset': offset}
         response = requests.get(self.api_url + method, params)
@@ -37,6 +35,14 @@ class BotHandler:
 myBot = BotHandler('554026510:AAHQahqhMAwffu4qWQSa0JZPJjDLamDtXO4')
 greetings = ('здравствуй', 'привет', 'ку', 'здорово')
 now = datetime.datetime.now()
+params = {
+  'database': 'dftilqnoe4t5kg',
+  'user': 'jkcvzflxvnhqcq',
+  'password': '80af35cf40ad6392d412671a379797fe9891cce47e525b87863aaa9728f0f784',
+  'host': 'ec2-54-227-243-210.compute-1.amazonaws.com',
+  'port': 5324
+}
+db = psycopg2.connect(**params)
 
 
 def main():
@@ -52,7 +58,10 @@ def main():
         last_chat_text = last_update['message']['text']
         last_chat_id = last_update['message']['chat']['id']
         last_chat_name = last_update['message']['chat']['first_name']
-
+        cur = db.cursor()
+        data = cur.execute("Select * FROM users where  user.id == %s", 'last_update_id')
+        if data is None:
+            cur.execute("Insert Into users values (:id, :name)", {"id": last_update_id, "name": last_chat_name})
         if last_chat_text.lower() in greetings and today == now.day and 6 <= hour < 12:
             myBot.send_message(last_chat_id, 'Доброе утро{}'.format(last_chat_name))
             today += 1
@@ -71,7 +80,4 @@ if __name__ == '__main__':
         main()
     except KeyboardInterrupt:
         exit()
-
-
-
 
