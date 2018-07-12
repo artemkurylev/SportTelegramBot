@@ -1,6 +1,5 @@
 import requests
 import datetime
-import psycopg2
 import telebot
 import config
 
