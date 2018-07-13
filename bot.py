@@ -14,18 +14,40 @@ params = {
 }
 db = psycopg2.connect(**params)
 cur = db.cursor()
+db.autocommit = True
+
+
+@bot.message_handler(commands=["start"])
+def remember_user(message):
+    username = message.from_user.username
+    cur.execute("SELECT * FROM users WHERE name ='%s'" % username)
+    record = cur.fetchone()
+    if record is None:
+        cur2 = db.cursor()
+        cur2.execute("INSERT INTO users (name) VALUES ('%s')" % username)
+        db.commit()
+    bot.send_message(message.chat.id, "Добро пожаловать в программу для спортивного робота. Для добавления дневника "
+                                      "испольузйте команду diary")
+
+
+@bot.message_handler(commands=['diary'])
+def create_diary(message):
+    username = message.from_user.username
+    cur.execute("SELECT * FROM users WHERE name ='%s'" % username)
+    user_record = cur.fetchone()
+    cur.execute("SELECT * FROM diaries  WHERE user_id = %s" % user_record[0])
+    diary_record = cur.fetchone()
+    if diary_record is None:
+        cur.execute("INSERT INTO diaries (user_id) VALUES (%s)" % user_record[0])
+        db.commit()
+        bot.send_message(message.chat.id, "Ваш дневник создан!")
+    else:
+        bot.send_message(message.chat.id, "У вас уже есть дневник")
 
 
 @bot.message_handler(content_types=["text"])
 def repeat_all_messages(message):
     bot.send_message(message.chat.id, message.text)
-
-
-@bot.message_handler(commands=["start"])
-def remember_user(message):
-    record = cur.execute("Select * from users WHERE id=(%s)", message.chat.id)
-    if record is None:
-        cur.execute("Insert into users values (%s,%s)", [message.chat.id, message.chat.first_name])
 
 
 if __name__ == '__main__':
