@@ -4,6 +4,7 @@ import telebot
 import config
 import psycopg2
 import exersize_worker
+import datetime
 
 bot = telebot.TeleBot(config.token)
 
@@ -69,7 +70,9 @@ def add_exersize(message):
     config.cur.execute("SELECT * FROM users WHERE name = '%s'" % message.from_user.username)
     record_user = config.cur.fetchone()
     exersize_worker.set_state(record_user[0], config.ExersizeStates.S_GOT[0])
-    config.cur.execute("INSERT INTO exersize (name,user_id) VALUES ('%s',%s)" % (message.text, record_user[0]))
+    date = datetime.date.today()
+    config.cur.execute("INSERT INTO exersize (name,user_id,exersize_date) VALUES ('%s',%s,'%s')" %
+                       (message.text, record_user[0], date))
     bot.send_message(message.chat.id, "Отлично, теперь введите вес с которым вы делали данное упражнение:")
 
 
@@ -81,7 +84,7 @@ def add_exersize_weight(message):
     else:
         weight = int(message.text)
         if weight > 1000:
-            bot.send_message(message.chat.id,"Введите корректный вес")
+            bot.send_message(message.chat.id, "Введите корректный вес")
         else:
             config.cur.execute("SELECT * FROM users WHERE name = '%s'" % message.from_user.username)
             record_user = config.cur.fetchone()
@@ -90,6 +93,27 @@ def add_exersize_weight(message):
             config.cur.execute("UPDATE exersize SET weight = (%s) WHERE id = (%s)" %
                                (weight, records_exersize[len(records_exersize) - 1][4]))
             bot.send_message(message.chat.id, "Вес добавлен, теперь введите кол-во повторений")
+            exersize_worker.set_state(record_user[0], config.ExersizeStates.S_GOT_WEIGHT[0])
+
+
+@bot.message_handler(func=lambda message: exersize_worker.get_current_state(message) ==
+                                          config.ExersizeStates.S_GOT_WEIGHT[0])
+def add_exersize_reps(message):
+    if message.text.isdigit() is not True:
+        bot.send_message(message.chat.id, "Вес должен представлять из себя число!")
+    else:
+        reps = int(message.text)
+        if reps > 100:
+            bot.send_message(message.chat.id, "Введите корректное количество повторений")
+        else:
+            config.cur.execute("SELECT * FROM users WHERE name = '%s'" % message.from_user.username)
+            record_user = config.cur.fetchone()
+            config.cur.execute("SELECT * FROM exersize WHERE user_id = %s ORDER BY id" % record_user[0])
+            records_exersize = config.cur.fetchall()
+            config.cur.execute("UPDATE exersize SET reps = (%s) WHERE id = (%s)" %
+                               (reps, records_exersize[len(records_exersize) - 1][4]))
+            bot.send_message(message.chat.id, "Кол-во повторений добавлено! Упражнение добавлено!")
+            exersize_worker.set_state(record_user[0], config.ExersizeStates.S_GOT_REPS[0])
 
 
 @bot.message_handler(content_types=["text"])
