@@ -1,4 +1,5 @@
 import psycopg2
+#token = ('612505438:AAHelG_wqIDR8Lop_Vdc9MXOLiODN1IosZU')
 token = ('554026510:AAHQahqhMAwffu4qWQSa0JZPJjDLamDtXO4')
 params = {
   'database': 'dftilqnoe4t5kg',
@@ -16,3 +17,8 @@ class ExersizeStates(enumerate):
     S_GOT = 1,
     S_GOT_WEIGHT = 2,
     S_GOT_REPS = 3,
+
+
+class StatisticsStatus(enumerate):
+    S_EXERSIZE = 0,
+    S_STATISTICS = 1

@@ -12,3 +12,4 @@ def get_current_state(message):
 
 def set_state(user_id, value):
     config.cur.execute("UPDATE exersize_status SET status = (%s) WHERE user_id = (%s)" % (value, user_id))
+    config.db.commit()

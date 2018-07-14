@@ -5,6 +5,7 @@ import config
 import psycopg2
 import exersize_worker
 import datetime
+import statistics_worker
 
 bot = telebot.TeleBot(config.token)
 
@@ -60,6 +61,27 @@ def use_exersize(message):
     bot.send_message(message.chat.id, set_of_records)
 
 
+@bot.message_handler(commands=['статистика'])
+def open_statistics(message):
+    config.cur.execute("SELECT * FROM users WHERE name = '%s'" % message.from_user.username)
+    record_user = config.cur.fetchone()
+    config.cur.execute("SELECT * FROM statistics_status WHERE user_id = %s" % record_user[0])
+    record_statistics = config.cur.fetchone()
+    if record_statistics is None:
+        config.cur.execute("INSERT INTO statistics_status (user_id, status) VALUES (%s, %s)" % (record_user[0], 0))
+        config.db.commit()
+    else:
+        statistics_worker.set_state(record_user[0], config.StatisticsStatus.S_EXERSIZE[0])
+    config.cur.execute("SELECT name FROM exersize_types")
+    records = config.cur.fetchall()
+    i = 0
+    set_of_records = "Введите упражнение, для которго хотите посмотреть статистику:\r\n"
+    while i < len(records):
+        set_of_records += records[i][0] + "\r\n"
+        i += 1
+    bot.send_message(message.chat.id, set_of_records)
+
+
 @bot.message_handler(func=lambda message: exersize_worker.get_current_state(message) ==
                                           config.ExersizeStates.S_EXERSIZE[0])
 def add_exersize(message):
@@ -71,7 +93,7 @@ def add_exersize(message):
     record_user = config.cur.fetchone()
     exersize_worker.set_state(record_user[0], config.ExersizeStates.S_GOT[0])
     date = datetime.date.today()
-    config.cur.execute("INSERT INTO exersize (name,user_id,exersize_date) VALUES ('%s',%s,'%s')" %
+    config.cur.execute("INSERT INTO exersize (name,user_id, exersize_date) VALUES ('%s',%s,'%s')" %
                        (message.text, record_user[0], date))
     bot.send_message(message.chat.id, "Отлично, теперь введите вес с которым вы делали данное упражнение:")
 
