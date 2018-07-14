@@ -1,8 +1,10 @@
 import config
 
+
 def get_current_state(message):
-    user_record = config.cur.execute("SELECT * FROM users WHERE name = '%s'" % message.from_user.username)
-    config.cur.execute("SELECT * FROM statistics_status WHERE  user_id = %s" % user_record[0])
+    config.cur.execute("SELECT * FROM users WHERE name = '%s'" % message.from_user.username)
+    user_record = config.cur.fetchone()
+    config.cur.execute("SELECT * FROM statistics_status WHERE user_id = %s" % user_record[0])
     statistics_record = config.cur.fetchone()
     return statistics_record[2]
 

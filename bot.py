@@ -6,6 +6,7 @@ import psycopg2
 import exersize_worker
 import datetime
 import statistics_worker
+from operator import attrgetter
 
 bot = telebot.TeleBot(config.token)
 
@@ -136,6 +137,30 @@ def add_exersize_reps(message):
                                (reps, records_exersize[len(records_exersize) - 1][4]))
             bot.send_message(message.chat.id, "Кол-во повторений добавлено! Упражнение добавлено!")
             exersize_worker.set_state(record_user[0], config.ExersizeStates.S_GOT_REPS[0])
+
+
+@bot.message_handler(func=lambda message: statistics_worker.get_current_state(message) ==
+                                          config.StatisticsStatus.S_EXERSIZE[0])
+def show_statistics(message):
+    config.cur.execute("SELECT * FROM users WHERE name = '%s'" % message.from_user.username)
+    record_user = config.cur.fetchone()
+    config.cur.execute("SELECT * FROM exersize WHERE name = '%s' AND user_id = (%s)" % (message.text, record_user[0]))
+    records_exersize = config.cur.fetchall()
+    if len(records_exersize) == 0:
+        bot.send_message(message.chat.id, "Вы либо не делали это упражнение, либо ввели его название неверно"
+                                          "(Проверьте его название в списке выше)")
+    else:
+        statistic = "Статистка по упражнению: " + message.text + "\r\n"
+        config.cur.execute("SELECT * FROM exersize WHERE name = '%s' AND user_id = (%s) ORDER BY weight DESC" %
+                           (message.text, record_user[0]))
+        record = config.cur.fetchone()
+        statistic += "Максимальный вес в данном упражнении: " + str(record[1]) + "\r\n"
+        config.cur.execute("SELECT * FROM exersize WHERE name = '%s' AND user_id = (%s) ORDER BY reps DESC" %
+                           (message.text, record_user[0]))
+        record = config.cur.fetchone()
+        statistic += "Максимальный кол-во повторений в данном упражнении: " + str(record[2]) + "\r\n"
+        bot.send_message(message.chat.id,statistic)
+        statistics_worker.set_state(record_user[0], config.StatisticsStatus.S_STATISTICS)
 
 
 @bot.message_handler(content_types=["text"])
