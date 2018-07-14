@@ -1,5 +1,5 @@
 import psycopg2
-token = ('612505438:AAHelG_wqIDR8Lop_Vdc9MXOLiODN1IosZU')
+token = ('554026510:AAHQahqhMAwffu4qWQSa0JZPJjDLamDtXO4')
 params = {
   'database': 'dftilqnoe4t5kg',
   'user': 'jkcvzflxvnhqcq',
@@ -11,7 +11,9 @@ db = psycopg2.connect(**params)
 cur = db.cursor()
 
 
-class ExersizeState(enumerate):
-    S_Exersize = "0"
-    S_Got = "1"
-    S_NEW = "2"
+class ExersizeStates(enumerate):
+    S_EXERSIZE = 0
+    S_GOT = 1
+    S_ENTER_WEIGHT = 2
+    S_ENTER_REPS = 3
+    S_NEW = 4
