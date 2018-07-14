@@ -1,6 +1,6 @@
 import psycopg2
-token = ('612505438:AAHelG_wqIDR8Lop_Vdc9MXOLiODN1IosZU')
-#token = ('554026510:AAHQahqhMAwffu4qWQSa0JZPJjDLamDtXO4')
+#token = ('612505438:AAHelG_wqIDR8Lop_Vdc9MXOLiODN1IosZU')
+token = ('554026510:AAHQahqhMAwffu4qWQSa0JZPJjDLamDtXO4')
 params = {
   'database': 'dftilqnoe4t5kg',
   'user': 'jkcvzflxvnhqcq',
