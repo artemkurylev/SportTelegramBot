@@ -12,8 +12,8 @@ cur = db.cursor()
 
 
 class ExersizeStates(enumerate):
-    S_EXERSIZE = 0
-    S_GOT = 1
-    S_ENTER_WEIGHT = 2
-    S_ENTER_REPS = 3
+    S_EXERSIZE = 0,
+    S_GOT = 1,
+    S_ENTER_WEIGHT = 2,
+    S_ENTER_REPS = 3,
     S_NEW = 4

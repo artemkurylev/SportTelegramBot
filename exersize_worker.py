@@ -3,7 +3,7 @@ import config
 
 
 def get_current_state(message):
-    config.cur.execute("SELECT * FROM users WHERE name = %s" % message.chat.id)
+    config.cur.execute("SELECT * FROM users WHERE name = '%s'" % message.from_user.username)
     rec = config.cur.fetchone()
     config.cur.execute("SELECT * FROM exersize_status WHERE user_id = %s" % rec[0])
     record = config.cur.fetchone()

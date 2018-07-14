@@ -59,9 +59,17 @@ def use_exersize(message):
     bot.send_message(message.chat.id, set_of_records)
 
 
-@bot.message_handler(func=lambda message: exersize_worker.get_current_state(message ==
-                                                                            config.ExersizeStates.S_EXERSIZE.value))
+@bot.message_handler(func=lambda message: exersize_worker.get_current_state(message) ==
+                                          config.ExersizeStates.S_EXERSIZE[0])
 def add_exersize(message):
+    config.cur.execute("SELECT * FROM exersize_types WHERE name = '%s'" % message.text)
+    record_ex = config.cur.fetchone()
+    if record_ex is None:
+        config.cur.execute("INSERT INTO exersize_types (name) VALUES ('%s')" % message.text)
+    config.cur.execute("SELECT * FROM users WHERE name = '%s'" % message.from_user.username)
+    record_user = config.cur.fetchone()
+    exersize_worker.set_state(record_user[0], config.ExersizeStates.S_GOT[0])
+    bot.send_message(message.chat.id, "Отлично, теперь введите вес с которым вы делали данное упражнение:")
     return None
 
 
