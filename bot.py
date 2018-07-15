@@ -22,8 +22,15 @@ def remember_user(message):
     if record is None:
         config.cur.execute("INSERT INTO users (name) VALUES ('%s')" % username)
         config.db.commit()
-    bot.send_message(message.chat.id, "Добро пожаловать в программу для спортивного робота. Для добавления дневника "
-                                      "испольузйте команду diary")
+        bot.send_message(message.chat.id,
+                         "Добро пожаловать в программу для спортивного робота. Для добавления дневника "
+                         "испольузйте команду diary")
+    else:
+        date = datetime.datetime.now().date()
+        config.cur.execute("SELECT * FROM training_dates WHERE date_time = '%s'" % date)
+        record_date = config.cur.fetchone()
+        if record_date is not None:
+            bot.send_message(message.chat.id, "Не забудьте про сегодняшнюю тренировку!")
 
 
 @bot.message_handler(commands=['diary'])
