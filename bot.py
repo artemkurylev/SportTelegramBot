@@ -167,6 +167,10 @@ def show_statistics(message):
                            (message.text, record_user[0]))
         record = config.cur.fetchone()
         statistic += "Максимальный кол-во повторений в данном упражнении: " + str(record[2]) + "\r\n"
+        config.cur.execute("SELECT SUM(exersize.reps), exersize.exersize_date  FROM exersize WHERE name ='%s'"
+                           "GROUP BY exersize.exersize_date ORDER BY SUM(exersize.reps) DESC " % message.text)
+        record = config.cur.fetchone()
+        statistic += "Максимальное количество повторениий за все подходы за один день равно:" + str(record[0]) + "\r\n"
         bot.send_message(message.chat.id, statistic)
         statistics_worker.set_state(record_user[0], config.StatisticsStatus.S_STATISTICS)
 
