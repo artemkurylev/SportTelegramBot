@@ -6,6 +6,7 @@ import psycopg2
 import exersize_worker
 import datetime
 import statistics_worker
+import trainig_worker
 from operator import attrgetter
 
 bot = telebot.TeleBot(config.token)
@@ -159,8 +160,35 @@ def show_statistics(message):
                            (message.text, record_user[0]))
         record = config.cur.fetchone()
         statistic += "Максимальный кол-во повторений в данном упражнении: " + str(record[2]) + "\r\n"
-        bot.send_message(message.chat.id,statistic)
+        bot.send_message(message.chat.id, statistic)
         statistics_worker.set_state(record_user[0], config.StatisticsStatus.S_STATISTICS)
+
+
+@bot.message_handler(commands=['training'])
+def enter_training(message):
+    config.cur.execute("SELECT * FROM users WHERE name = '%s'" % message.from_user.username)
+    record_user = config.cur.fetchone()
+    config.cur.execute("SELECT * FROM training_status WHERE user_id = %s" % record_user[0])
+    record_training = config.cur.fetchone()
+    if record_training is None:
+        config.cur.execute("INSERT INTO training_status (user_id, training_status) VALUES (%s, %s)" %
+                           (record_user[0], config.TrainingStates.S_ENTER_DATE[0]))
+        config.db.commit()
+    else:
+        trainig_worker.set_state(record_user[0], config.TrainingStates.S_ENTER_DATE[0])
+    bot.send_message(message.chat.id, "Введите дату тренровки через /")
+
+
+@bot.message_handler(func=lambda message: trainig_worker.get_current_state(message) ==
+                                          config.TrainingStates.S_ENTER_DATE[0])
+def add_training(message):
+    config.cur.execute("SELECT * FROM users WHERE name = '%s'" % message.from_user.username)
+    record_user = config.cur.fetchone()
+    date = message.text
+    config.cur.execute("INSERT INTO training_dates (chat_id, date_time) VALUES(%s,'%s')" % (message.chat.id, date))
+    config.db.commit()
+    trainig_worker.set_state(record_user[0], config.TrainingStates.S_READY)
+    bot.send_message(message.chat.id, "Дата успешно добавлена!")
 
 
 @bot.message_handler(content_types=["text"])
