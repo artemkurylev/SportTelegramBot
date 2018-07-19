@@ -50,12 +50,11 @@ def create_diary(message):
 
 @bot.message_handler(commands=['help'])
 def show_help(message):
-    help_string = "\\упражнение - добавить упражнение\r\n\\статистика - посмотреть статистику по упражнению"
-    bot.send_message(message.chat.id,help_string)
+    help_string = "\\exercise - добавить упражнение\r\n\\statistics - посмотреть статистику по упражнению"
+    bot.send_message(message.chat.id, help_string)
 
 
-
-@bot.message_handler(commands=['упражнение'])
+@bot.message_handler(commands=['exercise'])
 def use_exersize(message):
     username = message.from_user.username
     config.cur.execute("SELECT * FROM users WHERE name = '%s'" % username)
@@ -77,7 +76,7 @@ def use_exersize(message):
     bot.send_message(message.chat.id, set_of_records)
 
 
-@bot.message_handler(commands=['статистика'])
+@bot.message_handler(commands=['statistics'])
 def open_statistics(message):
     config.cur.execute("SELECT * FROM users WHERE name = '%s'" % message.from_user.username)
     record_user = config.cur.fetchone()
