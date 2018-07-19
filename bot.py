@@ -50,7 +50,7 @@ def create_diary(message):
 
 @bot.message_handler(commands=['help'])
 def show_help(message):
-    help_string = "\\exercise - добавить упражнение\r\n\\statistics - посмотреть статистику по упражнению"
+    help_string = "//exercise - добавить упражнение\r\n//statistics - посмотреть статистику по упражнению"
     bot.send_message(message.chat.id, help_string)
 
 
