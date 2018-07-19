@@ -48,6 +48,13 @@ def create_diary(message):
         bot.send_message(message.chat.id, "У вас уже есть дневник")
 
 
+@bot.message_handler(commands=['help'])
+def show_help(message):
+    help_string = "\\упражнение - добавить упражнение\r\n\\статистика - посмотреть статистику по упражнению"
+    bot.send_message(message.chat.id,help_string)
+
+
+
 @bot.message_handler(commands=['упражнение'])
 def use_exersize(message):
     username = message.from_user.username
